@@ -3,6 +3,7 @@ package org.jabref.logic.sharelatex;
 import java.io.IOException;
 
 import org.jabref.JabRefExecutorService;
+import org.jabref.model.database.BibDatabaseContext;
 
 import org.junit.Test;
 
@@ -20,7 +21,7 @@ public class SharelatexConnectorTest {
 
         JabRefExecutorService.INSTANCE.executeAndWait(()-> {
 
-            connector.startWebsocketListener();
+            connector.startWebsocketListener("", new BibDatabaseContext());
 
         });
     }

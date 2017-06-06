@@ -60,7 +60,7 @@ public class ShareLatexManager {
     public void startWebSocketHandler(String projectID, BibDatabaseContext database) {
         JabRefExecutorService.INSTANCE.executeAndWait(() -> {
 
-            connector.startWebsocketListener();
+            connector.startWebsocketListener(projectID, database);
         });
     }
 }

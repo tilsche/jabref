@@ -8,13 +8,15 @@ import java.util.concurrent.CountDownLatch;
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.Session;
 
+import org.jabref.model.database.BibDatabaseContext;
+
 import org.glassfish.tyrus.client.ClientManager;
 
 public class WebSocketClientWrapper {
 
     private Session session;
 
-    public void createAndConnect(String channel) {
+    public void createAndConnect(String channel, String projectId, BibDatabaseContext database) {
 
         CountDownLatch messageLatch = new CountDownLatch(1);
         try {
@@ -24,14 +26,19 @@ public class WebSocketClientWrapper {
             ClientManager client = ClientManager.createClient();
 
             SharelatexClientEndpoint endpoint = new SharelatexClientEndpoint();
+            endpoint.setDatabase(database);
             this.session = client.connectToServer(endpoint,
                     new URI("ws://192.168.1.248/socket.io/1/websocket/" + channel));
 
             Thread.sleep(200);
 
+            joinProject("5936d96b1bd5906b0082f53c");
+
             Thread.sleep(200);
 
-            session.getBasicRemote().sendText("5:2+::{\"name\":\"joinDoc\",\"args\":[\"5909edb0f31ff96200ef58df\"]}");
+            joinDoc("5936d96b1bd5906b0082f53e");
+
+            Thread.sleep(200);
 
             //TODO:  Idee: Einfach ein joinDoc und dann bei einem update ein leave/join schicken,m dann kriege ich ja das komplette doc wieder
 

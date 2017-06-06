@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import org.jabref.model.database.BibDatabaseContext;
+
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.NicelyResynchronizingAjaxController;
@@ -108,7 +110,7 @@ public class SharelatexConnector {
         return Optional.empty();
     }
 
-    public void startWebsocketListener() {
+    public void startWebsocketListener(String projectId, BibDatabaseContext database) {
         long millis = System.currentTimeMillis();
         System.out.println(millis);
         try {
@@ -123,7 +125,7 @@ public class SharelatexConnector {
             System.out.println("Channel " + channel);
 
              WebSocketClientWrapper client = new WebSocketClientWrapper();
-             client.createAndConnect(channel);
+            client.createAndConnect(channel, projectId, database);
             // MqttPublishSample.connect(channel);
 
         } catch (IOException e) {
