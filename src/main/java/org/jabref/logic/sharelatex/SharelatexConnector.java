@@ -122,7 +122,8 @@ public class SharelatexConnector {
             String channel = resp.substring(0, resp.indexOf(":"));
             System.out.println("Channel " + channel);
 
-            WebSocketClientWrapper.createAndConnect(channel);
+             WebSocketClientWrapper client = new WebSocketClientWrapper();
+             client.createAndConnect(channel);
             // MqttPublishSample.connect(channel);
 
         } catch (IOException e) {
