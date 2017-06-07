@@ -28,6 +28,7 @@ public class ShareLatexParserTest {
         JsonParser jsonParser = new JsonParser();
         JsonArray obj = jsonParser.parse(withoutFirstSix).getAsJsonArray();
 
+        //TODO: Write new method that extracs the database name and the id of the database
         assertEquals(obj, parser.parseFirstPartOfJson(document));
 
     }

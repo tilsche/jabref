@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import org.jabref.logic.importer.ImportFormatPreferences;
 import org.jabref.model.database.BibDatabaseContext;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
@@ -110,11 +111,12 @@ public class SharelatexConnector {
         return Optional.empty();
     }
 
-    public void startWebsocketListener(String projectId, BibDatabaseContext database) {
+    public void startWebsocketListener(String projectId, BibDatabaseContext database, ImportFormatPreferences prefs) {
         long millis = System.currentTimeMillis();
         System.out.println(millis);
+        String socketioUrl = server + "/socket.io/1";
         try {
-            Connection.Response webSocketresponse = Jsoup.connect("http://192.168.1.248/socket.io/1")
+            Connection.Response webSocketresponse = Jsoup.connect(socketioUrl)
                     .cookies(loginCookies)
                     .data("t", String.valueOf(millis)).method(Method.GET).execute();
 
@@ -124,9 +126,8 @@ public class SharelatexConnector {
             String channel = resp.substring(0, resp.indexOf(":"));
             System.out.println("Channel " + channel);
 
-             WebSocketClientWrapper client = new WebSocketClientWrapper();
+            WebSocketClientWrapper client = new WebSocketClientWrapper();
             client.createAndConnect(channel, projectId, database);
-            // MqttPublishSample.connect(channel);
 
         } catch (IOException e) {
             // TODO Auto-generated catch block
@@ -134,8 +135,8 @@ public class SharelatexConnector {
         }
     }
 
-    public void uploadFileWithWebClient(String projectId, Path path)
-    {
+    //TODO: Does not work
+    public void uploadFileWithWebClient(String projectId, Path path) {
         String activeProject = projectUrl + "/" + projectId;
         String uploadUrl = activeProject + "/upload";
 
@@ -154,26 +155,25 @@ public class SharelatexConnector {
             p = webClient.getPage(activeProject);
             System.out.println(p.getWebResponse().getContentAsString());
 
+            Optional<HtmlAnchor> anchor = p.getAnchors().stream()
+                    .filter(a -> a.getAttribute("ng-click").equals("openUploadFileModal()")).findFirst();
 
-        Optional<HtmlAnchor> anchor = p.getAnchors().stream()
-                .filter(a -> a.getAttribute("ng-click").equals("openUploadFileModal()")).findFirst();
-
-        anchor.ifPresent(x -> {
-            HtmlPage uploadPage;
-            try {
-                uploadPage = x.click();
+            anchor.ifPresent(x -> {
+                HtmlPage uploadPage;
+                try {
+                    uploadPage = x.click();
                     webClient.waitForBackgroundJavaScript(1000);
                     System.out.println("Clickedd!\r\n");
                     System.out.println(uploadPage.getWebResponse().getContentAsString());
                     //  System.out.println(uploadPage.getElementByName("file"));
 
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
-        });
+            });
 
-        webClient.close();
+            webClient.close();
         } catch (FailingHttpStatusCodeException | IOException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
@@ -181,8 +181,7 @@ public class SharelatexConnector {
 
     }
 
-
-
+    //TODO: Does not work
     public void uploadFile(String projectId, Path path) {
         String activeProject = projectUrl + "/" + projectId;
         String uploadUrl = activeProject + "/upload";
@@ -208,115 +207,13 @@ public class SharelatexConnector {
                     .userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64; rv:53.0) Gecko/20100101 Firefox/53.0")
                     .method(Method.POST).execute();
 
-            //TOD: Investigate why they also get send as multipart form request
+            //TODO: Investigate why they also get send as multipart form request
             System.out.println(fileResp.body());
 
-            /*         WebClient webClient = new WebClient();
-            webClient.getOptions().setThrowExceptionOnScriptError(false);
-            webClient.getOptions().setCssEnabled(false);
-            webClient.setAjaxController(new NicelyResynchronizingAjaxController());
-            webClient.getCookieManager()
-                    .addCookie(new Cookie("192.168.1.248", "sharelatex.sid", loginCookies.get("sharelatex.sid")));
-
-            HtmlPage p = webClient.getPage(activeProject);
-
-            Optional<HtmlAnchor> anchor = p.getAnchors().stream()
-                    .filter(a -> a.getAttribute("ng-click").equals("openUploadFileModal()")).findFirst();
-
-            anchor.ifPresent(x -> {
-                HtmlPage uploadPage;
-                try {
-                    uploadPage = x.click();
-                    webClient.waitForBackgroundJavaScript(10000);
-                    System.out.println(uploadPage.getWebResponse().getContentAsString());
-                    System.out.println(uploadPage.getElementByName("file"));
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-            });
-
-            webClient.close();
-                 } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-                 }
-
-
-            //this is a version 4 UUID
-            qq.getUniqueId = function(){
-                "use strict";
-
-                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                 //   jslint eqeq: true, bitwise: true
-                    var r = (Math.random()*16)|0, v = c == 'x' ? r : ((r&0x3)|0x8);
-                    return v.toString(16);
-                });};
-                  */
-            //window.csrfToken
-            //https://github.com/sharelatex/web-sharelatex/blob/2fbc796a728871fd536487eda6cd75cf1079f913/test/UnitTests/coffee/Uploads/ProjectUploadControllerTests.coffee
-
-            // TODO Auto-generated method stub
-
-            /*
-            try {
-
-
-            //  System.out.println(loginCookies);
-            loginCookies.forEach((x, y) -> System.out.println(x + " " + y));
-
-
-
-            BasicCookieStore cookieStore = new BasicCookieStore();
-            BasicClientCookie cookie = new BasicClientCookie("sharelatex.sid", loginCookies.get("sharelatex.sid"));
-            cookie.setDomain("*.192.168.1.248");
-            cookie.setPath("/");
-            cookieStore.addCookie(cookie);
-
-
-            CloseableHttpClient client = HttpClients.custom().setDefaultCookieStore(cookieStore)
-                    .setDefaultRequestConfig(RequestConfig).build();
-
-            HttpPost httpPost = new HttpPost(urlWithParms);
-
-            MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-            builder.addBinaryBody("qqfile", path.toFile(),
-                    ContentType.APPLICATION_OCTET_STREAM, path.getFileName().toString());
-
-            HttpEntity multipart = builder.build();
-            httpPost.setEntity(multipart);
-
-
-            CloseableHttpResponse response = client.execute(httpPost);
-            System.out.println(EntityUtils.toString(response.getEntity()));
-            client.close();
-            } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            }
-            */
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
 
-
 }
-
-/*  for (JsonElement elem : projectArray) {
-
-      System.out.println("ID " + elem.getAsJsonObject().get("id").getAsString());
-      System.out.println("Name " + elem.getAsJsonObject().get("name").getAsString());
-
-  }
-
-
-
-
-});
-
-//script tag parsen
-//Json parsen mit den Projects
-*/
