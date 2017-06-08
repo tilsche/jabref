@@ -8,6 +8,7 @@ import org.jabref.logic.importer.ParseException;
 import org.jabref.logic.importer.fileformat.BibtexParser;
 import org.jabref.model.entry.BibEntry;
 
+import com.github.wnameless.json.flattener.JsonFlattener;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -39,13 +40,16 @@ public class ShareLatexParser {
 
     }
 
-    public Map<String, String> getDatabaseWithId(String json) {
+    public Map<String, Object> getDatabaseWithId(String json) {
 
         JsonObject obj = parseFirstPartOfJson(json).get(1).getAsJsonObject();
         JsonArray arr = obj.get("rootFolder").getAsJsonArray();
 
+        Map<String, Object> flattenJson = JsonFlattener.flattenAsMap(obj.toString());
+
+        System.out.println("As Json flat: " + JsonFlattener.flatten(obj.toString()));
 
 
-        return null;
+        return flattenJson;
     }
 }
