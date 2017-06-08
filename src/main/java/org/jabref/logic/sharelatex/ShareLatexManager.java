@@ -5,9 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.jabref.JabRefExecutorService;
+import org.jabref.logic.importer.ImportFormatPreferences;
 import org.jabref.model.database.BibDatabaseContext;
 import org.jabref.model.sharelatex.ShareLatexProject;
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 
@@ -39,7 +39,6 @@ public class ShareLatexManager {
 
                     ShareLatexProject project = new ShareLatexProject(id, name, owner, lastUpdated);
                     projects.add(project);
-                    //TODO: How do I pass this projectLIst to the other view?
                 }
 
             }
@@ -50,17 +49,14 @@ public class ShareLatexManager {
     public void uploadLibrary(String projectId, BibDatabaseContext database) {
 
         //TODO: Not yet implemented
-        if (database.getDatabasePath().isPresent()) {
 
-            // connector.uploadFile(projectId, database.getDatabasePath().get());
-
-        }
     }
 
-    public void startWebSocketHandler(String projectID, BibDatabaseContext database) {
+    public void startWebSocketHandler(String projectID, BibDatabaseContext database,
+            ImportFormatPreferences preferences) {
         JabRefExecutorService.INSTANCE.executeAndWait(() -> {
 
-            connector.startWebsocketListener(projectID, database);
+            connector.startWebsocketListener(projectID, database, preferences);
         });
     }
 }

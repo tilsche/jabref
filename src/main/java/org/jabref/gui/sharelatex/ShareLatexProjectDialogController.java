@@ -14,6 +14,7 @@ import org.jabref.gui.AbstractController;
 import org.jabref.gui.StateManager;
 import org.jabref.logic.sharelatex.ShareLatexManager;
 import org.jabref.model.database.BibDatabaseContext;
+import org.jabref.preferences.PreferencesService;
 
 public class ShareLatexProjectDialogController extends AbstractController<ShareLatexProjectDialogViewModel> {
 
@@ -24,6 +25,7 @@ public class ShareLatexProjectDialogController extends AbstractController<ShareL
     @FXML private TableView<ShareLatexProjectViewModel> tblProjects;
     @Inject private ShareLatexManager manager;
     @Inject private StateManager stateManager;
+    @Inject private PreferencesService preferences;
 
     @FXML
     private void initialize() {
@@ -58,16 +60,12 @@ public class ShareLatexProjectDialogController extends AbstractController<ShareL
         Optional<ShareLatexProjectViewModel> projects = viewModel.projectsProperty().filtered(x -> x.isActive())
                 .stream().findFirst();
 
-
-        if (projects.isPresent() && stateManager.getActiveDatabase().isPresent())
-        {
+        if (projects.isPresent() && stateManager.getActiveDatabase().isPresent()) {
             String projectID = projects.get().getProjectId();
             BibDatabaseContext database = stateManager.getActiveDatabase().get();
 
-            manager.startWebSocketHandler(projectID, database);
+            manager.startWebSocketHandler(projectID, database, preferences.getImportFormatPreferences());
         }
-
-
 
     }
 

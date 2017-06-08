@@ -27,6 +27,7 @@ public class SharelatexClientEndpoint {
         //if it as a return value it is send right back to the server
         System.out.println("Message came from the server ! " + message);
 
+        //TODO: EventBus Synchro like in dbms?
         if (message.contains("@book")) {
 
             List<BibEntry> entries = parser.parseBibEntryFromJsonArray(parser.parseFirstPartOfJson(message),
