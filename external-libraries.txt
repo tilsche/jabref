@@ -145,6 +145,7 @@ Project: Flowless
 URL:     https://github.com/TomasMikula/Flowless
 License: BSD-2-Clause
 
+
 Id:      org.glassfish.tyrus.bundles:tyrus-standalone-client
 Projekt: Tyrus
 URL:     https://tyrus.java.net/
@@ -154,6 +155,11 @@ Id:      com.google.code.gson:gson
 Project: google-gson
 URL:     https://github.com/google/gson
 License: Apache-2.0
+
+Id:      org.fxmisc.richtext:richtextfx
+Project: RichTextFX
+URL:     https://github.com/TomasMikula/RichTextFX
+License: BSD-2-Clause
 
 Id:      de.jensd:fontawesomefx-materialdesignfont
 Project: FontAwesomeFX
