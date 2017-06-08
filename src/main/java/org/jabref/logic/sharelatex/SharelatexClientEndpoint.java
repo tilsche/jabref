@@ -45,7 +45,6 @@ public class SharelatexClientEndpoint {
             //We got changes at our doc
             //leave doc and rejoin doc
 
-
             session.getBasicRemote().sendText("5:6+::{\"name\":\"leaveDoc\",\"args\":[\"" + documentId + "\"]}");
             Thread.sleep(200);
             session.getBasicRemote().sendText("5:7+::{\"name\":\"joinDoc\",\"args\":[\"" + documentId + "\"]}");

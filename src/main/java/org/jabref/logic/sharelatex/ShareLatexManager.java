@@ -8,6 +8,7 @@ import org.jabref.JabRefExecutorService;
 import org.jabref.logic.importer.ImportFormatPreferences;
 import org.jabref.model.database.BibDatabaseContext;
 import org.jabref.model.sharelatex.ShareLatexProject;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 
