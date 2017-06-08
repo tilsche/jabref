@@ -24,6 +24,7 @@ public class SharelatexClientEndpoint {
     @OnMessage
     public void processMessageFromServer(String message, Session session)
             throws IOException, InterruptedException, ParseException {
+        //if it as a return value it is send right back to the server
         System.out.println("Message came from the server ! " + message);
 
         if (message.contains("@book")) {
@@ -42,6 +43,7 @@ public class SharelatexClientEndpoint {
             String documentId = "5936d96b1bd5906b0082f53e";
             //We got changes at our doc
             //leave doc and rejoin doc
+
 
             session.getBasicRemote().sendText("5:6+::{\"name\":\"leaveDoc\",\"args\":[\"" + documentId + "\"]}");
             Thread.sleep(200);

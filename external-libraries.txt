@@ -145,7 +145,6 @@ Project: Flowless
 URL:     https://github.com/TomasMikula/Flowless
 License: BSD-2-Clause
 
-
 Id:      org.glassfish.tyrus.bundles:tyrus-standalone-client
 Projekt: Tyrus
 URL:     https://tyrus.java.net/
@@ -239,6 +238,11 @@ License: BSD 3-Clause
 
 Id:      com.github.tomtung
 Project: latex2unicode
+URL:     https://github.com/tomtung/latex2unicode
+License: Apache 2.0
+
+Id:      com.github.wnameless
+Project: json-flattener
 URL:     https://github.com/tomtung/latex2unicode
 License: Apache 2.0
 

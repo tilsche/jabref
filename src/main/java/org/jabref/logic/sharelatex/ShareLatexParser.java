@@ -3,6 +3,7 @@ package org.jabref.logic.sharelatex;
 
 
 import java.util.List;
+import java.util.Map;
 
 import org.jabref.logic.importer.ImportFormatPreferences;
 import org.jabref.logic.importer.ParseException;
@@ -11,6 +12,7 @@ import org.jabref.model.entry.BibEntry;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 public class ShareLatexParser {
@@ -37,5 +39,15 @@ public class ShareLatexParser {
         BibtexParser parser = new BibtexParser(prefs);
         return parser.parseEntries(builder.toString());
 
+    }
+
+    public Map<String, String> getDatabaseWithId(String json) {
+
+        JsonObject obj = parseFirstPartOfJson(json).get(1).getAsJsonObject();
+        JsonArray arr = obj.get("rootFolder").getAsJsonArray();
+
+
+
+        return null;
     }
 }
