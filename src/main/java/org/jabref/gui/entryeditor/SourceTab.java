@@ -59,6 +59,7 @@ public class SourceTab extends EntryEditorTab {
 
     private Node createSourceEditor(BibEntry entry, BibDatabaseMode mode) {
         codeArea = new CodeArea();
+
         codeArea.setWrapText(true);
         //codeArea.(Font.font("Monospaced", Globals.prefs.getInt(JabRefPreferences.FONT_SIZE)));
         EasyBind.subscribe(codeArea.focusedProperty(), focused -> {
@@ -76,6 +77,15 @@ public class SourceTab extends EntryEditorTab {
             codeArea.setEditable(false);
             LOGGER.debug("Incorrect entry", ex);
         }
+
+        codeArea.richChanges().subscribe(x -> {
+            System.out.println(x.getPosition());
+            System.out.println("Inserted text" + x.getInserted().getText());
+            System.out.println("Inserted end " + x.getInsertionEnd());
+
+            System.out.println("Deleted text " + x.getRemoved().getText());
+            System.out.println("Deleted end " + x.getRemovalEnd());
+        });
 
         return new VirtualizedScrollPane<>(codeArea);
     }
