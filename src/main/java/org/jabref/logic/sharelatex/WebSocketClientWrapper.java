@@ -11,6 +11,7 @@ import javax.websocket.Session;
 import org.jabref.model.database.BibDatabaseContext;
 
 import org.glassfish.tyrus.client.ClientManager;
+import org.json.JSONObject;
 
 public class WebSocketClientWrapper {
 
@@ -95,4 +96,12 @@ public class WebSocketClientWrapper {
 
     }
 
+    public void updateAsDeleteAndInsert(String text, String docId) {
+
+        String quotedDocId = JSONObject.quote(docId);
+
+        String str = "{\"name\":\"applyOtUpdate\",\"args\":[" + quotedDocId
+                + ",{\"doc\":" + quotedDocId
+                + ",\"op\":[{\"p\":0,\"d\":\"ToDelete \"},{\"p\":0,\"i\":\" To Insert\"}],\"v\":68}]}";
+    }
 }

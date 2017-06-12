@@ -87,6 +87,7 @@ public class SourceTab extends EntryEditorTab {
             System.out.println("Deleted end " + x.getRemovalEnd());
         });
 
+
         return new VirtualizedScrollPane<>(codeArea);
     }
 

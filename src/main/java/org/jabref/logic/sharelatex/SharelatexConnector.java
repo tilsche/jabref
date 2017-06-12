@@ -11,13 +11,6 @@ import java.util.Optional;
 import org.jabref.logic.importer.ImportFormatPreferences;
 import org.jabref.model.database.BibDatabaseContext;
 
-import com.gargoylesoftware.htmlunit.BrowserVersion;
-import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
-import com.gargoylesoftware.htmlunit.NicelyResynchronizingAjaxController;
-import com.gargoylesoftware.htmlunit.WebClient;
-import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import com.gargoylesoftware.htmlunit.util.Cookie;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -133,52 +126,6 @@ public class SharelatexConnector {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-    }
-
-    //TODO: Does not work
-    public void uploadFileWithWebClient(String projectId, Path path) {
-        String activeProject = projectUrl + "/" + projectId;
-        String uploadUrl = activeProject + "/upload";
-
-        WebClient webClient = new WebClient(BrowserVersion.FIREFOX_52);
-        webClient.getOptions().setThrowExceptionOnScriptError(false);
-        webClient.getOptions().setCssEnabled(true);
-        webClient.waitForBackgroundJavaScriptStartingBefore(100);
-        webClient.setAjaxController(new NicelyResynchronizingAjaxController());
-
-        webClient.getCookieManager()
-                .addCookie(new Cookie("192.168.1.248", "sharelatex.sid", loginCookies.get("sharelatex.sid")));
-
-        webClient.addRequestHeader("Referer", loginUrl);
-        HtmlPage p;
-        try {
-            p = webClient.getPage(activeProject);
-            System.out.println(p.getWebResponse().getContentAsString());
-
-            Optional<HtmlAnchor> anchor = p.getAnchors().stream()
-                    .filter(a -> a.getAttribute("ng-click").equals("openUploadFileModal()")).findFirst();
-
-            anchor.ifPresent(x -> {
-                HtmlPage uploadPage;
-                try {
-                    uploadPage = x.click();
-                    webClient.waitForBackgroundJavaScript(1000);
-                    System.out.println("Clickedd!\r\n");
-                    System.out.println(uploadPage.getWebResponse().getContentAsString());
-                    //  System.out.println(uploadPage.getElementByName("file"));
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-            });
-
-            webClient.close();
-        } catch (FailingHttpStatusCodeException | IOException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
-        }
-
     }
 
     //TODO: Does not work

@@ -11,6 +11,7 @@ import org.jabref.model.sharelatex.ShareLatexProject;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import org.apache.commons.lang3.NotImplementedException;
 
 public class ShareLatexManager {
 
@@ -48,7 +49,7 @@ public class ShareLatexManager {
     }
 
     public void uploadLibrary(String projectId, BibDatabaseContext database) {
-
+        throw new NotImplementedException("Not really working");
         //TODO: Not yet implemented
 
     }
