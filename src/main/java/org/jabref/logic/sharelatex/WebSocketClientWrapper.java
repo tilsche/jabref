@@ -9,9 +9,10 @@ import javax.websocket.ClientEndpointConfig;
 import javax.websocket.Session;
 
 import org.jabref.model.database.BibDatabaseContext;
+import org.jabref.model.database.event.BibDatabaseContextChangedEvent;
 
+import com.google.common.eventbus.Subscribe;
 import org.glassfish.tyrus.client.ClientManager;
-import org.json.JSONObject;
 
 public class WebSocketClientWrapper {
 
@@ -41,6 +42,21 @@ public class WebSocketClientWrapper {
 
             Thread.sleep(200);
 
+            String oldContent = "@book{adams1995hitchhiker,       \n" +
+                    "   title={The Hitchhiker's Guide to the Galaxy},\n" +
+                    "  author={Adams, D.},\n" +
+                    "  isbn={9781417642595},\n" +
+                    "  url={http://books.google.com/books?id=W-xMPgAACAAJ},\n" +
+                    "  year={199},\n" +
+                    "  publisher={San Val}\n" +
+                    "}\n" +
+                    "";
+
+            updateAsDeleteAndInsert("5936d96b1bd5906b0082f53e", 0, 70, oldContent, "@book{adams1996hitchhiker,\n" +
+                    "  author = {Adams, D.}\n}");
+
+            Thread.sleep(200);
+            database.getDatabase().registerListener(this);
             //TODO:  Idee: Einfach ein joinDoc und dann bei einem update ein leave/join schicken,m dann kriege ich ja das komplette doc wieder
 
             //6:::1+[null,{"_id":"5909edaff31ff96200ef58dd","name":"Test","rootDoc_id":"5909edaff31ff96200ef58de","rootFolder":[{"_id":"5909edaff31ff96200ef58dc","name":"rootFolder","folders":[],"fileRefs":[{"_id":"5909edb0f31ff96200ef58e0","name":"universe.jpg"},{"_id":"59118cae98ba55690073c2a0","name":"all2.ris"}],"docs":[{"_id":"5909edaff31ff96200ef58de","name":"main.tex"},{"_id":"5909edb0f31ff96200ef58df","name":"references.bib"},{"_id":"5911801698ba55690073c29c","name":"aaaaaaaaaaaaaa.bib"}]}],"publicAccesLevel":"private","dropboxEnabled":false,"compiler":"pdflatex","description":"","spellCheckLanguage":"en","deletedByExternalDataSource":false,"deletedDocs":[],"members":[{"_id":"5912e195a303b468002eaad0","first_name":"jim","last_name":"","email":"jim@example.com","privileges":"readAndWrite","signUpDate":"2017-05-10T09:47:01.325Z"}],"invites":[],"owner":{"_id":"5909ed80761dc10a01f7abc0","first_name":"joe","last_name":"","email":"joe@example.com","privileges":"owner","signUpDate":"2017-05-03T14:47:28.665Z"},"features":{"trackChanges":true,"references":true,"templates":true,"compileGroup":"standard","compileTimeout":180,"github":false,"dropbox":true,"versioning":true,"collaborators":-1,"trackChangesVisible":false}},"owner",2]
@@ -96,12 +112,28 @@ public class WebSocketClientWrapper {
 
     }
 
-    public void updateAsDeleteAndInsert(String text, String docId) {
+    public void updateAsDeleteAndInsert(String docId, int position, int version, String oldContent, String newContent)
+            throws IOException {
+        ShareLatexJsonMessage message = new ShareLatexJsonMessage();
+        String str = message.createDeleteInsertMessage(docId, position, version, oldContent, newContent);
+        System.out.println("Send new update Message" + str);
 
-        String quotedDocId = JSONObject.quote(docId);
+        session.getBasicRemote()
+                .sendText("5:8+::" + str);
+    }
 
-        String str = "{\"name\":\"applyOtUpdate\",\"args\":[" + quotedDocId
-                + ",{\"doc\":" + quotedDocId
-                + ",\"op\":[{\"p\":0,\"d\":\"ToDelete \"},{\"p\":0,\"i\":\" To Insert\"}],\"v\":68}]}";
+    @Subscribe
+    public synchronized void listen(@SuppressWarnings("unused") BibDatabaseContextChangedEvent event) {
+
+        System.out.println("Event called" + event.getClass());
+
+        //TODO: We need to create a new event or add some parameters
+        /*    BibtexDatabaseWriter<StringSaveSession> databaseWriter = new BibtexDatabaseWriter<>(StringSaveSession::new);
+        StringSaveSession saveSession = databaseWriter.savePartOfDatabase(
+                new BibDatabaseContext(database, new MetaData(), new Defaults()), database.getEntries(),
+                new SavePreferences());
+        // return saveSession.getStringValue();
+         *
+         */
     }
 }

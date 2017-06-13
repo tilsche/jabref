@@ -1,7 +1,6 @@
 package org.jabref.logic.sharelatex;
 
 import java.io.IOException;
-import java.util.List;
 
 import javax.websocket.ClientEndpoint;
 import javax.websocket.EndpointConfig;
@@ -9,10 +8,8 @@ import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 
-import org.jabref.Globals;
 import org.jabref.logic.importer.ParseException;
 import org.jabref.model.database.BibDatabaseContext;
-import org.jabref.model.entry.BibEntry;
 
 @ClientEndpoint
 public class SharelatexClientEndpoint {
@@ -29,12 +26,13 @@ public class SharelatexClientEndpoint {
 
         //TODO: EventBus Synchro like in dbms?
         if (message.contains("@book")) {
-
-            List<BibEntry> entries = parser.parseBibEntryFromJsonArray(parser.parseFirstPartOfJson(message),
+            System.out.println("Message could be an entry ");
+            /*  List<BibEntry> entries = parser.parseBibEntryFromJsonArray(parser.parseFirstPartOfJson(message),
                     Globals.prefs.getImportFormatPreferences());
 
             System.out.println(entries);
             database.getDatabase().insertEntries(entries);
+            */
             //We have a bib document
             //Inserts the new entry
             //TODO: Check for duplication
