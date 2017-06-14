@@ -81,10 +81,9 @@ public class WebSocketClientWrapper {
 
             Thread.sleep(200);
 
-
             //  database.getDatabase().registerListener(this);
 
-            //TODO: Send/Receive with CountDownLatch
+            //TODO: Send/Receive with CountDownLatch -- Find alternative
             //TODO: Change Dialog
             //TODO: Keep old database string which last came in + version
             //TODO: On database change event or on save event send new version
@@ -94,39 +93,28 @@ public class WebSocketClientWrapper {
             //TODO: Switch back to anymous class to have all in one class?
             //TODO:
 
-            //6:::1+[null,{"_id":"5909edaff31ff96200ef58dd","name":"Test","rootDoc_id":"5909edaff31ff96200ef58de","rootFolder":[{"_id":"5909edaff31ff96200ef58dc","name":"rootFolder","folders":[],"fileRefs":[{"_id":"5909edb0f31ff96200ef58e0","name":"universe.jpg"},{"_id":"59118cae98ba55690073c2a0","name":"all2.ris"}],"docs":[{"_id":"5909edaff31ff96200ef58de","name":"main.tex"},{"_id":"5909edb0f31ff96200ef58df","name":"references.bib"},{"_id":"5911801698ba55690073c29c","name":"aaaaaaaaaaaaaa.bib"}]}],"publicAccesLevel":"private","dropboxEnabled":false,"compiler":"pdflatex","description":"","spellCheckLanguage":"en","deletedByExternalDataSource":false,"deletedDocs":[],"members":[{"_id":"5912e195a303b468002eaad0","first_name":"jim","last_name":"","email":"jim@example.com","privileges":"readAndWrite","signUpDate":"2017-05-10T09:47:01.325Z"}],"invites":[],"owner":{"_id":"5909ed80761dc10a01f7abc0","first_name":"joe","last_name":"","email":"joe@example.com","privileges":"owner","signUpDate":"2017-05-03T14:47:28.665Z"},"features":{"trackChanges":true,"references":true,"templates":true,"compileGroup":"standard","compileTimeout":180,"github":false,"dropbox":true,"versioning":true,"collaborators":-1,"trackChangesVisible":false}},"owner",2]
-            //Finden der ID mit der bib die der active database entspricht
-            //idee: EntrySet stream
+            //If message starts with [null,[ we have an entry content
+            //If message contains rootDoc or so then we have gotten the initial joinProject result
+            /*
+             * Received message: 1::
+            Received message: 5:::{"name":"connectionAccepted"}
+            Received message: 6:::1+[null,{"_id":"5936d96b1bd5906b0082f53c","name":"Example","rootDoc_id":"5936d96b1bd5906b0082f53d","rootFolder":[{"_id":"5936d96b1bd5906b0082f53b","name":"rootFolder","folders":[],"fileRefs":[{"_id":"5936d96b1bd5906b0082f53f","name":"universe.jpg"}],"docs":[{"_id":"5936d96b1bd5906b0082f53d","name":"main.tex"},{"_id":"5936d96b1bd5906b0082f53e","name":"references.bib"}]}],"publicAccesLevel":"private","dropboxEnabled":false,"compiler":"pdflatex","description":"","spellCheckLanguage":"en","deletedByExternalDataSource":false,"deletedDocs":[],"members":[{"_id":"5912e195a303b468002eaad0","first_name":"jim","last_name":"","email":"jim@example.com","privileges":"readAndWrite","signUpDate":"2017-05-10T09:47:01.325Z"}],"invites":[],"owner":{"_id":"5909ed80761dc10a01f7abc0","first_name":"joe","last_name":"","email":"joe@example.com","privileges":"owner","signUpDate":"2017-05-03T14:47:28.665Z"},"features":{"trackChanges":true,"references":true,"templates":true,"compileGroup":"standard","compileTimeout":180,"github":false,"dropbox":true,"versioning":true,"collaborators":-1,"trackChangesVisible":false}},"owner",2]
+            Received message: 6:::7+[null,["@book{adams1996hitchhiker,","  author = {Adams, D.}","}@book{adams1995hitchhiker,       ","   title={The Hitchhiker's Guide to the Galaxy},","  author={Adams, D.},","  isbn={9781417642595},","  url={http://books.google.com/books?id=W-xMPgAACAAJ},","  year={199},","  publisher={San Val}","}",""],73,[],{}]
+            Message could be an entry
+            
+            //We need a command counter which updates the part after :
+            
+             * if message_type == "update":
+            self.ipc_session.send("5:::"+message_content)
+            elif message_type == "cmd":
+                self.command_counter += 1
+            self.ipc_session.send("5:" + str(self.command_counter) + "+::" + message_content)
+                elif message_type == "alive":
+            self.ipc_session.send("2::")
+            
+             */
 
-            //5:::{"name":"otUpdateApplied","args":[{"doc":"5909edb0f31ff96200ef58df","op":[{"d":"nov","p":223},{"i":"December","p":223}],"v":8,"meta":{"type":"external","source":"upload","user_id":"5912e195a303b468002eaad0","ts":1496736413706}}]}
 
-            // Die ersten x-Zeichen sind immer code + ::
-            // danach kommt das argument und wichtig die doc id
-            //die doc id muss ich abgleichen
-            //am anfang kommt aber ja erst noch das
-
-            /*   client.connectToServer(new Endpoint() {
-
-                @Override
-                public void onOpen(Session session, EndpointConfig config) {
-                    System.out.println("On Open and is Open " + session.isOpen());
-
-                    session.addMessageHandler(String.class, (Whole<String>) message -> {
-                        System.out.println("Received message: " + message);
-
-                    });
-
-                    try {
-                        session.getBasicRemote().sendText(
-                                "5:1+::{\"name\":\"joinProject\",\"args\":[{\"project_id\":\"5909edaff31ff96200ef58dd\"}]}");
-                    } catch (IOException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                    System.out.println("Sent");
-
-                }
-            }, cec, new URI("ws://192.168.1.248/socket.io/1/websocket/" + channel));        */
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -166,7 +154,7 @@ public class WebSocketClientWrapper {
         StringSaveSession saveSession = databaseWriter.saveDatabase(oldDb, new SavePreferences());
         String updatedcontent = saveSession.getStringValue();
 
-        System.out.println("OldConten " + updatedcontent);
+        System.out.println("OldContent " + updatedcontent);
 
         //TODO: We need to create a new event or add some parameters
 
