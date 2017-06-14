@@ -8,6 +8,10 @@ import java.util.concurrent.CountDownLatch;
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.Session;
 
+import org.jabref.logic.exporter.BibtexDatabaseWriter;
+import org.jabref.logic.exporter.SaveException;
+import org.jabref.logic.exporter.SavePreferences;
+import org.jabref.logic.exporter.StringSaveSession;
 import org.jabref.model.database.BibDatabaseContext;
 import org.jabref.model.database.event.BibDatabaseContextChangedEvent;
 
@@ -17,8 +21,12 @@ import org.glassfish.tyrus.client.ClientManager;
 public class WebSocketClientWrapper {
 
     private Session session;
+    private BibDatabaseContext oldDb;
+    private BibDatabaseContext newDb;
 
     public void createAndConnect(String channel, String projectId, BibDatabaseContext database) {
+
+        oldDb = database;
 
         CountDownLatch messageLatch = new CountDownLatch(1);
         try {
@@ -123,17 +131,19 @@ public class WebSocketClientWrapper {
     }
 
     @Subscribe
-    public synchronized void listen(@SuppressWarnings("unused") BibDatabaseContextChangedEvent event) {
+    public synchronized void listen(@SuppressWarnings("unused") BibDatabaseContextChangedEvent event)
+            throws SaveException {
 
         System.out.println("Event called" + event.getClass());
+        BibtexDatabaseWriter<StringSaveSession> databaseWriter = new BibtexDatabaseWriter<>(StringSaveSession::new);
+        StringSaveSession saveSession = databaseWriter.saveDatabase(oldDb, new SavePreferences());
+        String updatedcontent = saveSession.getStringValue();
+
+        System.out.println("OldConten " + updatedcontent);
 
         //TODO: We need to create a new event or add some parameters
-        /*    BibtexDatabaseWriter<StringSaveSession> databaseWriter = new BibtexDatabaseWriter<>(StringSaveSession::new);
-        StringSaveSession saveSession = databaseWriter.savePartOfDatabase(
-                new BibDatabaseContext(database, new MetaData(), new Defaults()), database.getEntries(),
-                new SavePreferences());
+
         // return saveSession.getStringValue();
-         *
-         */
+
     }
 }
