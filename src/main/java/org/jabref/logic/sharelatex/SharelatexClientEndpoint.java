@@ -8,7 +8,6 @@ import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 
-import org.jabref.logic.importer.ParseException;
 import org.jabref.model.database.BibDatabaseContext;
 
 @ClientEndpoint
@@ -20,7 +19,7 @@ public class SharelatexClientEndpoint {
 
     @OnMessage
     public void processMessageFromServer(String message, Session session)
-            throws IOException, InterruptedException, ParseException {
+            throws IOException, InterruptedException {
         //if it as a return value it is send right back to the server
         System.out.println("Message came from the server ! " + message);
 
