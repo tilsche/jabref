@@ -5,7 +5,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.jabref.gui.filelist.FileListTableModel;
+import org.jabref.gui.undo.UndoableFieldChange;
 import org.jabref.model.entry.BibEntry;
+import org.jabref.model.entry.FieldName;
 
 public interface FileFinder {
 
@@ -21,6 +24,14 @@ public interface FileFinder {
 
     default List<Path> findAssociatedFiles(BibEntry entry, List<Path> directories, List<String> extensions) {
         Map<BibEntry, List<Path>> associatedFiles = findAssociatedFiles(Collections.singletonList(entry), directories, extensions);
+        for (Map.Entry<BibEntry, List<Path>> kv : associatedFiles.entrySet())
+        {
+            if (!kv.getKey().getField(FieldName.FILE).isPresent() && kv.getValue().size() > 0)
+            {
+                String newVal = ":" + kv.getValue().get(0).toString() + ":PDF:";
+                kv.getKey().setField(FieldName.FILE, newVal);
+            }
+        }
         return associatedFiles.getOrDefault(entry, Collections.emptyList());
     }
 }
