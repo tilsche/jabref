@@ -17,6 +17,7 @@ import com.google.gson.JsonParser;
 
 public class ShareLatexParser {
 
+    public static final int JSON_START_OFFSET = 6;
     /**
      * json Data source containing all details and docs for one project
     [
@@ -102,21 +103,33 @@ public class ShareLatexParser {
     "owner",
     2
     ]
-    
+
      */
 
     private final JsonParser parser = new JsonParser();
 
-    public JsonArray parseFirstPartOfJson(String documentToParse) {
-        String jsonToRead = documentToParse.substring(6, documentToParse.length());
+    JsonArray parseFirstPartOfJson(String documentToParse) {
+        String jsonToRead = documentToParse.substring(JSON_START_OFFSET, documentToParse.length());
 
-        JsonArray obj = parser.parse(jsonToRead).getAsJsonArray();
+        JsonArray arr = parser.parse(jsonToRead).getAsJsonArray();
 
-        return obj;
+        return arr;
 
     }
 
-    public List<BibEntry> parseBibEntryFromJsonArray(JsonArray arr, ImportFormatPreferences prefs)
+    public int getVersionFromBibTexJsonString(String content) {
+
+        JsonArray array = parseFirstPartOfJson(content);
+        return array.get(2).getAsInt();
+
+    }
+
+    public List<BibEntry> parseBibEntryFromJsonMessageString(String message, ImportFormatPreferences prefs)
+            throws ParseException {
+        return parseBibEntryFromJsonArray(parseFirstPartOfJson(message), prefs);
+    }
+
+    List<BibEntry> parseBibEntryFromJsonArray(JsonArray arr, ImportFormatPreferences prefs)
             throws ParseException {
         JsonArray stringArr = arr.get(1).getAsJsonArray();
         StringBuilder builder = new StringBuilder();
@@ -129,7 +142,7 @@ public class ShareLatexParser {
 
     }
 
-    public Map<String, String> getDatabaseWithId(String json) {
+    public Map<String, String> getBibTexDatabasesNameWithId(String json) {
         Map<String, String> bibFileWithId = new HashMap<>();
 
         JsonObject obj = parseFirstPartOfJson(json).get(1).getAsJsonObject();

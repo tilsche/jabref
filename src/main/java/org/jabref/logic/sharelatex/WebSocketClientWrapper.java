@@ -3,7 +3,8 @@ package org.jabref.logic.sharelatex;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
-import java.util.concurrent.CyclicBarrier;
+import java.util.List;
+import java.util.Map;
 
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.Endpoint;
@@ -15,8 +16,11 @@ import org.jabref.logic.exporter.BibtexDatabaseWriter;
 import org.jabref.logic.exporter.SaveException;
 import org.jabref.logic.exporter.SavePreferences;
 import org.jabref.logic.exporter.StringSaveSession;
+import org.jabref.logic.importer.ImportFormatPreferences;
+import org.jabref.logic.importer.ParseException;
 import org.jabref.model.database.BibDatabaseContext;
 import org.jabref.model.database.event.BibDatabaseContextChangedEvent;
+import org.jabref.model.entry.BibEntry;
 
 import com.google.common.eventbus.Subscribe;
 import org.glassfish.tyrus.client.ClientManager;
@@ -24,15 +28,20 @@ import org.glassfish.tyrus.client.ClientManager;
 public class WebSocketClientWrapper {
 
     private Session session;
-    private BibDatabaseContext oldDb;
+    private String oldContent;
     private BibDatabaseContext newDb;
+    private final ImportFormatPreferences prefs;
+
+    private final ShareLatexParser parser = new ShareLatexParser();
+
+    public WebSocketClientWrapper(ImportFormatPreferences prefs) {
+        this.prefs = prefs;
+    }
 
     public void createAndConnect(String channel, String projectId, BibDatabaseContext database) {
 
-        oldDb = database;
-
-        CyclicBarrier barrier = new CyclicBarrier(1);
         try {
+            this.newDb = database;
 
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create()
                     .preferredSubprotocols(Arrays.asList("mqttt")).build();
@@ -45,43 +54,13 @@ public class WebSocketClientWrapper {
                     session.addMessageHandler(String.class, (Whole<String>) message -> {
                         System.out.println("Received message: " + message);
 
-                        if (message.contains("@book")) {
-                            System.out.println("Message could be an entry ");
-
-                        }
-                        if (message.contains("otUpdateApplied") && message.contains("5936d96b1bd5906b0082f53e")) {
-                            String documentId = "5936d96b1bd5906b0082f53e";
-
-                            try {
-                                leaveDocument(documentId);
-                                Thread.sleep(200);
-                                joinDoc(documentId);
-                                Thread.sleep(200);
-                            } catch (IOException e) {
-                                // TODO Auto-generated catch block
-                                e.printStackTrace();
-                            } catch (InterruptedException e) {
-                                // TODO Auto-generated catch block
-                                e.printStackTrace();
-                            }
-
-                        }
+                        parseContents(message);
 
                     });
                 }
             }, cec, new URI("ws://192.168.1.248/socket.io/1/websocket/" + channel));
 
-            Thread.sleep(200);
-
-            joinProject("5936d96b1bd5906b0082f53c");
-
-            Thread.sleep(200);
-
-            joinDoc("5936d96b1bd5906b0082f53e");
-
-            Thread.sleep(200);
-
-            //  database.getDatabase().registerListener(this);
+            database.getDatabase().registerListener(this);
 
             //TODO: Send/Receive with CountDownLatch -- Find alternative
             //TODO: Change Dialog
@@ -101,9 +80,9 @@ public class WebSocketClientWrapper {
             Received message: 6:::1+[null,{"_id":"5936d96b1bd5906b0082f53c","name":"Example","rootDoc_id":"5936d96b1bd5906b0082f53d","rootFolder":[{"_id":"5936d96b1bd5906b0082f53b","name":"rootFolder","folders":[],"fileRefs":[{"_id":"5936d96b1bd5906b0082f53f","name":"universe.jpg"}],"docs":[{"_id":"5936d96b1bd5906b0082f53d","name":"main.tex"},{"_id":"5936d96b1bd5906b0082f53e","name":"references.bib"}]}],"publicAccesLevel":"private","dropboxEnabled":false,"compiler":"pdflatex","description":"","spellCheckLanguage":"en","deletedByExternalDataSource":false,"deletedDocs":[],"members":[{"_id":"5912e195a303b468002eaad0","first_name":"jim","last_name":"","email":"jim@example.com","privileges":"readAndWrite","signUpDate":"2017-05-10T09:47:01.325Z"}],"invites":[],"owner":{"_id":"5909ed80761dc10a01f7abc0","first_name":"joe","last_name":"","email":"joe@example.com","privileges":"owner","signUpDate":"2017-05-03T14:47:28.665Z"},"features":{"trackChanges":true,"references":true,"templates":true,"compileGroup":"standard","compileTimeout":180,"github":false,"dropbox":true,"versioning":true,"collaborators":-1,"trackChangesVisible":false}},"owner",2]
             Received message: 6:::7+[null,["@book{adams1996hitchhiker,","  author = {Adams, D.}","}@book{adams1995hitchhiker,       ","   title={The Hitchhiker's Guide to the Galaxy},","  author={Adams, D.},","  isbn={9781417642595},","  url={http://books.google.com/books?id=W-xMPgAACAAJ},","  year={199},","  publisher={San Val}","}",""],73,[],{}]
             Message could be an entry
-            
+
             //We need a command counter which updates the part after :
-            
+
              * if message_type == "update":
             self.ipc_session.send("5:::"+message_content)
             elif message_type == "cmd":
@@ -111,9 +90,8 @@ public class WebSocketClientWrapper {
             self.ipc_session.send("5:" + str(self.command_counter) + "+::" + message_content)
                 elif message_type == "alive":
             self.ipc_session.send("2::")
-            
-             */
 
+             */
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -151,7 +129,7 @@ public class WebSocketClientWrapper {
 
         System.out.println("Event called" + event.getClass());
         BibtexDatabaseWriter<StringSaveSession> databaseWriter = new BibtexDatabaseWriter<>(StringSaveSession::new);
-        StringSaveSession saveSession = databaseWriter.saveDatabase(oldDb, new SavePreferences());
+        StringSaveSession saveSession = databaseWriter.saveDatabase(newDb, new SavePreferences());
         String updatedcontent = saveSession.getStringValue();
 
         System.out.println("OldContent " + updatedcontent);
@@ -161,4 +139,53 @@ public class WebSocketClientWrapper {
         // return saveSession.getStringValue();
 
     }
+
+    //Actual response handling
+    private void parseContents(String message) {
+        try {
+
+            if (message.startsWith("[null,{", ShareLatexParser.JSON_START_OFFSET)) {
+                //We get a list with all files
+                Map<String, String> dbWithID = parser.getBibTexDatabasesNameWithId(message);
+                System.out.println("DBs with ID " + dbWithID);
+
+            }
+            if (message.contains("{\"name\":\"connectionAccepted\"}")) {
+
+                Thread.sleep(200);
+
+                joinProject("5936d96b1bd5906b0082f53c");
+
+                Thread.sleep(200);
+
+                joinDoc("5936d96b1bd5906b0082f53e");
+
+                Thread.sleep(200);
+
+            }
+
+            if (message.startsWith("[null,[", ShareLatexParser.JSON_START_OFFSET)) {
+                System.out.println("Message could be an entry ");
+
+                List<BibEntry> entries = parser.parseBibEntryFromJsonMessageString(message, prefs);
+                System.out.println("Got new entries");
+
+            }
+
+            if (message.contains("otUpdateApplied") && message.contains("5936d96b1bd5906b0082f53e")) {
+                System.out.println("We got an update");
+                String documentId = "5936d96b1bd5906b0082f53e";
+
+                leaveDocument(documentId);
+                Thread.sleep(200);
+                joinDoc(documentId);
+                Thread.sleep(200);
+
+            }
+
+        } catch (InterruptedException | IOException | ParseException e) {
+            e.printStackTrace();
+        }
+    }
+
 }

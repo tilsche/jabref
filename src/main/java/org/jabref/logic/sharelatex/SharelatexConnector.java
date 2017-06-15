@@ -119,7 +119,7 @@ public class SharelatexConnector {
             String channel = resp.substring(0, resp.indexOf(":"));
             System.out.println("Channel " + channel);
 
-            WebSocketClientWrapper client = new WebSocketClientWrapper();
+            WebSocketClientWrapper client = new WebSocketClientWrapper(prefs);
             client.createAndConnect(channel, projectId, database);
 
         } catch (IOException e) {
@@ -134,28 +134,27 @@ public class SharelatexConnector {
         String uploadUrl = activeProject + "/upload";
 
         try {
-            InputStream str;
+            try (InputStream str = Files.newInputStream(path)) {
 
-            String urlWithParms = uploadUrl + "?folder_id=" + projectId + "&_csrf=" + csrfToken
-                    + "&qquuid=28774ed2-ae25-44f1-9388-c78f1c6b8286" + "&qqtotalfilesize="
-                    + Long.toString(Files.size(path));
+                String urlWithParms = uploadUrl + "?folder_id=" + projectId + "&_csrf=" + csrfToken
+                        + "&qquuid=28774ed2-ae25-44f1-9388-c78f1c6b8286" + "&qqtotalfilesize="
+                        + Long.toString(Files.size(path));
 
-            str = Files.newInputStream(path);
+                Connection.Response fileResp = Jsoup.connect(urlWithParms).cookies(loginCookies)
+                        .header("Host", "192.168.1.248")
+                        .header("Accept", "*/*")
+                        .header("Accept-Language", "Accept-Language: de,en-US;q=0.7,en;q=0.3")
+                        .header("Accept-Encoding", "gzip, deflate")
+                        .header("X-Requested-With", "XMLHttpRequest")
+                        .header("Cache-Control", "no-cache")
+                        .data("qqfile", path.getFileName().toString(), str)
+                        .cookies(loginCookies).ignoreContentType(true)
+                        .userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64; rv:53.0) Gecko/20100101 Firefox/53.0")
+                        .method(Method.POST).execute();
 
-            Connection.Response fileResp = Jsoup.connect(urlWithParms).cookies(loginCookies)
-                    .header("Host", "192.168.1.248")
-                    .header("Accept", "*/*")
-                    .header("Accept-Language", "Accept-Language: de,en-US;q=0.7,en;q=0.3")
-                    .header("Accept-Encoding", "gzip, deflate")
-                    .header("X-Requested-With", "XMLHttpRequest")
-                    .header("Cache-Control", "no-cache")
-                    .data("qqfile", path.getFileName().toString(), str)
-                    .cookies(loginCookies).ignoreContentType(true)
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64; rv:53.0) Gecko/20100101 Firefox/53.0")
-                    .method(Method.POST).execute();
-
-            //TODO: Investigate why they also get send as multipart form request
-            System.out.println(fileResp.body());
+                //TODO: Investigate why they also get send as multipart form request
+                System.out.println(fileResp.body());
+            }
 
         } catch (IOException e) {
             // TODO Auto-generated catch block
